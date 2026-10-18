@@ -3,17 +3,24 @@
 #   askf "..."  follow up on the most recent conversation
 #   askr ["..."] pick one of the last 10 conversations and follow up on it
 # Sessions all run from ~/.ask so they stay separate from other Claude Code work.
+# Set ASK_CLAUDE_CONFIG_DIR to use a different Claude login (e.g. a personal account).
 
 ASK_DIR=~/.ask
 ASK_MODEL=${ASK_MODEL:-haiku}
 mkdir -p $ASK_DIR
 
-ask()  { (cd $ASK_DIR && claude --model $ASK_MODEL -p "$*"); }
-askf() { (cd $ASK_DIR && claude --model $ASK_MODEL -c -p "$*"); }
+_ask_claude() {
+  (cd $ASK_DIR
+   [[ -n $ASK_CLAUDE_CONFIG_DIR ]] && export CLAUDE_CONFIG_DIR=$ASK_CLAUDE_CONFIG_DIR
+   claude --model $ASK_MODEL "$@")
+}
+
+ask()  { _ask_claude -p "$*"; }
+askf() { _ask_claude -c -p "$*"; }
 
 askr() {
   # Claude Code stores sessions under a folder named after the path, non-alphanumerics -> '-'
-  local dir=~/.claude/projects/${ASK_DIR//[^[:alnum:]]/-}
+  local dir=${ASK_CLAUDE_CONFIG_DIR:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}}/projects/${ASK_DIR//[^[:alnum:]]/-}
   local -a files; files=(${(f)"$(ls -t $dir/*.jsonl 2>/dev/null | head -10)"})
   (( ${#files} )) || { echo "No ask sessions yet."; return 1; }
   local i=1 f q
@@ -26,5 +33,5 @@ askr() {
   [[ $n == <-> ]] && (( n >= 1 && n <= ${#files} )) || { echo "Cancelled."; return 1; }
   local prompt="$*"
   [[ -z $prompt ]] && read "prompt?Follow-up: "
-  (cd $ASK_DIR && claude --model $ASK_MODEL -r "${files[n]:t:r}" -p "$prompt" < /dev/null)
+  _ask_claude -r "${files[n]:t:r}" -p "$prompt" < /dev/null
 }
