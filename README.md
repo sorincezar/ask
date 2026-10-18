@@ -8,6 +8,21 @@ Tiny zsh helpers for asking Claude quick questions from the terminal, with follo
 | `askf "..."` | Continue the most recent conversation |
 | `askr` | Pick one of the last 10 conversations and continue it |
 
+## Piping input
+
+`ask` and `askf` include anything piped in alongside your question:
+
+```sh
+tail -50 app.log | ask "why is this failing?"
+git diff | askf "and does this change fix it?"
+```
+
+This also works for a remote machine without logging into Claude there: the command runs remotely, the question is asked from your own machine.
+
+```sh
+ssh shared-box 'tail -50 /var/log/app.log' | ask "why is this failing?"
+```
+
 ## Install
 
 Requires [Claude Code](https://claude.com/claude-code) (logged in), `jq`, and zsh.

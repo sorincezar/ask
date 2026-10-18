@@ -2,6 +2,7 @@
 #   ask  "..."  start a new conversation
 #   askf "..."  follow up on the most recent conversation
 #   askr ["..."] pick one of the last 10 conversations and follow up on it
+# ask and askf also take piped input: `tail -50 app.log | ask "why is this failing?"`
 # Sessions all run from ~/.ask so they stay separate from other Claude Code work.
 # Set ASK_CLAUDE_CONFIG_DIR to use a different Claude login (e.g. a personal account).
 
